@@ -7,4 +7,7 @@ local_mode = platform.node() == 'Jiang'
 
 audio_file_save_path = r"C:\Users\jiang\PycharmProjects\xianyu_spider\app\audio_record_files"
 
-speech_test_phone_num = 18807102447
+speech_test_phone_num = 18807101234
+
+if not local_mode:
+    speech_test_phone_num = 18807102447
