@@ -10,7 +10,7 @@ audio_file_save_path = r"C:\Users\jiang\PycharmProjects\xianyu_spider\app\audio_
 speech_test_phone_num = 18807101234
 
 if not local_mode:
-    speech_test_phone_num = 18807102447
+    speech_test_phone_num = 18807101234
 
 db_config ={
     'host': '127.0.0.1',
