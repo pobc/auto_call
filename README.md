@@ -11,8 +11,10 @@ https://adminlte.io/docs/3.2/dependencies.html
 
 # ✨技术架构
 
-- Python3.8.12
-- requirements.txt
+- Python 3.8.12
 - mysql
+- funasr 1.1.4
+
+# 用到的包，都在requirements.txt
 
 数据库名字xianyu
