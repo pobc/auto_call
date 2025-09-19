@@ -14,4 +14,5 @@ https://adminlte.io/docs/3.2/dependencies.html
 - Python3.8.12
 - requirements.txt
 - mysql
-- 
+
+数据库名字xianyu

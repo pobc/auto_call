@@ -1,10 +1,12 @@
 import pymysql
 import platform
 # 连接mysql字符串
+from main import config
 
 
 def db():
-    db = pymysql.connect(host="127.0.0.1", user ="root", password="jiang", db="xianyu", port=3306, cursorclass=pymysql.cursors.DictCursor)
+    db = pymysql.connect(host=config.db_config['host'], user=config.db_config['user'], password=config.db_config['pwd'],
+                         db=config.db_config['database'], port=config.db_config['port'], cursorclass=pymysql.cursors.DictCursor)
     return db
 
 
@@ -14,7 +16,7 @@ db = db()
 class DBUtils:
     @staticmethod
     def execute(sql, args=None, exe_type=None):
-        db.cursorclass=pymysql.cursors.DictCursor
+        db.cursorclass = pymysql.cursors.DictCursor
         if sql:
             sql = sql.lstrip()
             # 增删改 需要回滚
@@ -26,7 +28,7 @@ class DBUtils:
                         if (isinstance(args, list) and len(args) > 0 and sql.find('touzhu') != -1):
                             print('checking dts')
                             for i in range(len(args)):
-                                if ( (args[i] == '' or args[i] == None) ):
+                                if ((args[i] == '' or args[i] == None)):
                                     print('init dt')
                                     args[i] = '0'
                         # 执行sql
@@ -62,8 +64,6 @@ class DBUtils:
                     print('===============')
                     pass
 
-
-
     @staticmethod
     def executeMany(sql, args):
         return DBUtils.execute(sql, args, "MANY")
@@ -73,7 +73,7 @@ class DBUtils:
         return DBUtils.execute(sql, args, None)
 
     @staticmethod
-    def queryNoDict(sql, args=None,):
+    def queryNoDict(sql, args=None, ):
         if sql:
             sql = sql.lstrip()
             try:
