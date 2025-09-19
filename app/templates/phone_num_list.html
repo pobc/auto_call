@@ -1,0 +1,808 @@
+{% extends "base.html" %}
+
+{% block title %}通知方式查询{% endblock %}
+{% block navbar %}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="box box-primary">
+    <!--<div class="box-header with-border">
+        {% include 'message.html' %}
+    </div>-->
+
+
+    <div class="box-body">
+
+        <div class="tabbable tabs-left" id="task_table_div"> <!-- Only required for left/right tabs -->
+            <ul class="nav nav-tabs" id="task_tab">
+                <!--                <li class="active">-->
+                <!--                    <a href="#sub_tab_contact" data-toggle="tab">任务一</a>-->
+                <!--                </li>
+
+                                <li>
+                                    <a href="#tab22" data-toggle="tab"></a>
+                                </li>
+                -->
+            </ul>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="audioDetailsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">录音信息</h4>
+                <button type="button" class="btn btn-primary mb-2" id="pre_row">上一个</button>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <button type="button" class="btn btn-primary mb-2" id="next_row">下一个</button>
+            </div>
+            <div class="modal-body" id="modal-phone-details">
+
+            </div>
+            <div class="btn-group" data-toggle="buttons" id="houseStatusGroup">
+                <label class="btn">
+                    <input type="radio" name="house_status_options" id="had_rent" value="4"> 已租
+                </label>
+                <label class="btn">
+                    <input type="radio" name="house_status_options" id="greet" value="1"> 有意
+                </label>
+                <label class="btn">
+                    <input type="radio" name="house_status_options" id="maybe" value="2">可能
+                </label>
+                <label class="btn">
+                    <input type="radio" name="house_status_options" id="refuse" value="3">没有
+                </label>
+                <label class="btn">
+                    <input type="radio" name="house_status_options" id="call_again" value="5">需要确认
+                </label>
+            </div>
+            <!--<div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>-->
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script type="application/javascript">
+
+
+    let tab_and_datatable_html = `
+        <div class="tab-content" id="tab_content">
+                <div class="tab-pane active" id="sub_tab_contact">
+                    <div class="tabbable "> <!-- Only required for left/right tabs -->
+                        <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="#tab1" data-toggle="tab">已呼客户</a>
+                            </li>
+                            <li>
+                                <a href="#tab2" data-toggle="tab">未呼客户</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tab1">
+
+                                <div>
+                                    <div style="display: inline-flex">
+                                        <div style="display: inline;">
+                                            <label for="calledDatetime">数据日期:</label>
+                                            <div id="calledDatetime"
+                                                 style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+                                                <i class="fa fa-calendar"></i>&nbsp;
+                                                <span></span> <i class="fa fa-caret-down"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display: inline-block;">
+                                            <label for="phone_num_table1">号码:</label>
+                                            <div class="input-group">
+                                            <input type="text" id="phone_num_table1" class="form-control" placeholder="手机号">
+                                            </div>
+                                      </div>
+                                    &nbsp;&nbsp;
+                                    <div style="display: inline-block">
+                                        <label for="intention_level">意向等级:</label>
+                                        <div class="input-group">
+                                            <select class="form-control" id="intention_level">
+                                                <option></option>
+                                                <option value="-1">-1 未接</option>
+                                                <option value="1">1-明确有意</option>
+                                                <option value="2">2-可能有</option>
+                                                <option value="3">3-拒绝</option>
+                                                <option value="4">4-已租</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    &nbsp;&nbsp;
+                                    <div class="col-4" style="display: inline-block;">
+                                        <label for="talk_count">对话次数(>=):</label>
+                                        <div class="input-group">
+                                            <select class="form-control" id="talk_count">
+                                                <option></option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
+                                                <option value="6">6</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    &nbsp;&nbsp;
+                                    <div class="col-4" style="display: inline-grid">
+                                        <label for="calledSearchBtn">&nbsp;</label>
+                                        <button id="calledSearchBtn" type="button" class="btn btn-success mb-2">查询
+                                        </button>
+                                    </div>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;
+                                     <div class="col-4" style="display: inline-grid">
+                                        <label for="calledSearchBtn">&nbsp;</label>
+                                        <button class="btn btn-warning mb-2" id="recyclePhoneBtn" style="display: inline-block;"> 回收当前表中所有未接号码</button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                <table id="calledContractTable" class="table table-bordered">
+
+                                </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="tab2">
+                             <br>
+                            <button type="button" class="btn btn-primary mb-2" data-status="stop" id="start_task_btn">开始执行任务</button>
+                            <br>
+                            <br>
+                                <div class="input-group mb-3" style="display: inline-flex;">
+                                    <input type="file" class="form-control" id="fileUpload"
+                                           style="display: inline-block;"
+                                           accept=".xls,.xlsx"
+                                           placeholder="选择文件">
+                                    <label class="input-group-text" for="fileUpload"></label>
+                                </div>
+                                <input type="hidden" id="task_code">
+                                <button class="btn btn-success mb-2" id="uploadBtn" style="display: inline-block;">
+                                    上传
+                                </button>
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                <button class="btn btn-danger mb-2" id="delPhoneBtn" style="display: inline-block;"> 删除</button>
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+
+                                <a href="{{ url_for('static', filename='files/phone_template.xlsx') }}" download>点击这里下载 Excel 模板</a>
+                                <div>
+                                    <div style="display: inline-flex">
+                                        <div style="display: inline;">
+                                            <label for="waitCallDatetime">数据日期:</label>
+                                            <div id="waitCallDatetime"
+                                                 style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+                                                <i class="fa fa-calendar"></i>&nbsp;
+                                                <span></span> <i class="fa fa-caret-down"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-4" style="display: inline-flex;">
+                                        <div class="input-group">
+                                         <label for="phone_status">号码状态:</label>
+                                            <select class="form-control" id="phone_status">
+                                                <option value="">全部</option>
+                                                <option value="wait">未呼客户</option>
+                                                <option value="used">已呼的</option>
+                                                <option value="missed">未接</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                     <div class="col-4" style="display: inline-flex;">
+                                        <div class="input-group">
+                                            <label for="phone_num">号码:</label>
+                                            <input type="text" id="phone_num_table2" class="form-control" placeholder="手机号">
+                                        </div>
+                                      </div>
+
+                                    &nbsp;&nbsp;
+                                    <div class="col-4" style="display: inline-grid">
+                                        <label for="searchPhoneBtn">&nbsp;</label>
+                                        <button id="searchPhoneBtn" type="button" class="btn btn-success mb-2">查询电话</button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                <table id="contractTable" class="table table-bordered">
+
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="tab22">
+
+                </div>
+            </div>
+    `;
+
+    let currentIndex = 0
+    let myCalledDataTable;
+    let wait_speech_phone_num_table;
+    let date_range = {};
+
+    function init_datepicker(elementName, start_days_ago) {
+        moment.locale('zh-cn');
+        var start = moment().subtract(start_days_ago, 'days');
+        var end = moment();
+        date_range[elementName] = [start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD')];
+
+        function cb(start, end) {
+            $(`#${elementName} span`).html(start.format('YYYY-MM-DD') + ' 至 ' + end.format('YYYY-MM-DD'));
+            // 更新全局变量
+            date_range[elementName][0] = start.format('YYYY-MM-DD');
+            date_range[elementName][1] = end.format('YYYY-MM-DD');
+        }
+
+        $(`#${elementName}`).daterangepicker({
+            startDate: start,
+            endDate: end,
+            locale: {
+                format: 'YYYY-MM-DD',  // 日期格式
+                separator: ' 至 ',
+                applyLabel: '确定',
+                cancelLabel: '取消',
+                fromLabel: '从',
+                toLabel: '到',
+                customRangeLabel: '自定义',
+                daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],  // 星期显示
+                monthNames: ['01月', '02月', '03月', '04月', '05月', '06月', '07月', '08月', '09月', '10月', '11月', '12月'],  // 月份显示为数字
+                firstDay: 1  // 一周从星期一开始
+            },
+            ranges: {
+                '今天': [moment(), moment()],
+                '昨天到今天': [moment().subtract(1, 'days'), moment()],
+                '3天内': [moment().subtract(2, 'days'), moment()],
+                '7天内': [moment().subtract(6, 'days'), moment()],
+                '30天内': [moment().subtract(29, 'days'), moment()],
+                '这个月': [moment().startOf('month'), moment().endOf('month')],
+                '上个月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end);
+    }
+
+    function query_task() {
+        // /data/add_call_task
+        $.get('/data/get_call_task', function (data) {
+            if (data['code'] === 1) {
+                data['data'].forEach((item, idx) => {
+                    let init_str = "";
+                    if (item['default_choose'] === 'ok')
+                        init_str = ' class="active"';
+                    let li = `
+                        <li ${init_str} data-val="${item['task_code']}" data-task-status="${item['task_status']}">
+                            <a href="#tab_${item['task_code']}" data-task-status="${item['task_status']}"  data-val="${item['task_code']}" data-toggle="tab">${item['area_name']}</a>
+                        </li>`
+                    $('#task_tab').append(li);
+
+                });
+
+                $('#task_tab li').off('click').on('click', function (e) {
+                    let li_task_elem = $(e.target);
+                    // console.log(li_task_elem);
+                    let li_task_code = li_task_elem.data('val');
+                    let current_task_code = $('#task_code').val();
+                    if (current_task_code === li_task_code) {
+                        return
+                    }
+                    // let sub_tab_contact_div = $('#sub_tab_contact').clone();
+                    $('#tab_content').remove();
+                    $('#task_table_div').append(tab_and_datatable_html);
+                    $('#task_code').val(li_task_code)
+                    $('#start_task_btn').data('status', li_task_elem.data('task-status'));
+
+                    console.log(li_task_code,'当前任务状态：', li_task_elem.data('task-status'));
+                    if (li_task_elem.data('task-status') === 'processing') {
+                        $('#start_task_btn').text('任务执行中，点击停止');
+                    }
+
+                    loadDataTable(li_task_code)
+                });
+
+                if (data['data'].length > 0) {
+                    if($('#task_tab li.active:eq(0)').length === 0){
+                        $('#task_tab li:eq(0)').click();
+                        $('#task_tab li:eq(0)').addClass('active');
+                    }else{
+                        $('#task_tab li.active:eq(0)').trigger('click');
+                    }
+                }
+            }
+        }, 'json')
+    }
+
+    function update_phone_num_status(currentIndex, audio_txt, is_checked, intention_level) {
+        console.log('currentIndex:',currentIndex,'update_phone_num_status:',intention_level)
+        let rowData = myCalledDataTable.row(currentIndex).data()
+        let record_id = rowData['id']
+        $.post('/data/update_speech_audio_record', {
+            record_id: record_id,
+            audio_txt: audio_txt,
+            is_checked: is_checked,
+            intention_level: intention_level
+        }, function (data) {
+            if (data['code'] === 1) {
+                if (rowData) {
+                    if (intention_level!==undefined)
+                        rowData['intention_level'] = intention_level;
+                    if(is_checked !==undefined)
+                        rowData['is_checked'] = is_checked;
+                    myCalledDataTable.row(currentIndex).data(rowData).invalidate().draw(false);
+                }
+            }
+        })
+    }
+
+
+    function pre_next_audio_detail(direction = 'next') {
+        console.log('currentIndex:', currentIndex);
+        if (direction === 'next')
+            currentIndex++; // Move to the next row
+        else {
+            currentIndex--;
+        }
+        let data_count = myCalledDataTable.rows().count();
+        console.log('total:', data_count);
+        if (currentIndex <= 0)
+            currentIndex = 0
+        else if (currentIndex >= data_count) {
+            currentIndex = data_count;
+        }
+
+        if (currentIndex >= 0 && currentIndex < data_count) {
+            let nextRowData = myCalledDataTable.row(currentIndex).data();
+            console.log('next function record_id:', nextRowData)
+            let details = nextRowData['phone_num'];
+            let audio_file_path_single = location.origin + nextRowData['audio_file_name'].replace(".wav", "_single.wav");
+            let audio_file_path = location.origin + nextRowData['audio_file_name'];
+            let audio_txt = nextRowData['audio_txt'].replace(/###/g, '<br>###');
+            let house_num = nextRowData['house_num'];
+            let house_area = nextRowData['house_area'].slice(-2);
+            let call_datetime = nextRowData['call_datetime'];
+            let audio_modal_content = `
+                         完整的：
+                        <br>
+                        <audio controls>
+                            <source src="${audio_file_path}" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <br>
+                        -----
+                        单独房东录音：
+                        <br>
+                        <audio controls>
+                            <source src="${audio_file_path_single}" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <input type="hidden" id="currentIndex" value="${currentIndex}">
+            `;
+            // 将详细信息填入 Modal
+            $('#modal-phone-details').html(`<label>${call_datetime}</label><br><input id="phone_num" readonly value="${details}"/> <a class="nowrap" href="javascript:void(0)" onclick="copyTxt('phone_num')">复制</a>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="tel:${details}">拨打</a>
+                                <br><br>门牌号：<textarea readonly id="house_num">${house_area}#${house_num}</textarea><a class="nowrap" style="white-space: nowrap" href="javascript:void(0)"  onclick="copyTxt('house_num')">复制</a>
+                                            <br><br>${audio_modal_content}<br>
+                                            <span class="auto-newline">${audio_txt}</span>`);
+            // 更新手机号状态
+            if (nextRowData['is_checked'] !== 1){
+                update_phone_num_status(currentIndex, undefined, 1,undefined);
+            }
+            // $('#calledContractTable tbody tr').eq(currentIndex).find('td:eq(1) span').addClass('gray-text');
+            init_component(nextRowData['intention_level']);
+        }
+    }
+
+    function copyTxt(txtInputId) {
+        var copyTextarea = document.querySelector('#' + txtInputId);
+        copyTextarea.focus();
+        copyTextarea.select();
+
+        try {
+            var successful = document.execCommand('copy');
+            var msg = successful ? 'successful' : 'unsuccessful';
+            console.log('Copying text command was ' + msg);
+        } catch (err) {
+            console.log('Oops, unable to copy');
+        }
+    }
+
+    function init_component(intention_level) {
+        console.log('init_component:', intention_level);
+
+        // Reset all radio buttons and remove active class
+        $('#houseStatusGroup input[type="radio"]').prop('checked', false);
+        $('#houseStatusGroup label').removeClass('active');
+
+        // Based on the status value, select the corresponding radio button
+        if (intention_level === 4) {
+            $('#had_rent').prop('checked', true).parent('label').addClass('active');
+        } else if (intention_level === 1) {
+            $('#greet').prop('checked', true).parent('label').addClass('active');
+        } else if (intention_level === 2) {
+            $('#maybe').prop('checked', true).parent('label').addClass('active');
+        } else if (intention_level === 3) {
+            $('#refuse').prop('checked', true).parent('label').addClass('active');
+        }else if (intention_level === 5) {
+            $('#call_again').prop('checked', true).parent('label').addClass('active');
+        }
+
+    }
+
+    function loadDataTable(task_code) {
+        init_datepicker('waitCallDatetime', 300);
+        init_datepicker('calledDatetime', 1);
+        $('#start_task_btn').off('click').click(function (e) {
+            let task_code = $('#task_code').val();
+            let start_task_btn = $(e.target);
+            let task_status = 'stop';
+            if (start_task_btn.data('status') === 'stop') {
+                task_status = 'processing'
+            }
+            $.post('/data/update_call_task', {task_code: task_code, task_status: task_status}, function (data) {
+                if (data.code === 1) {
+                    if (task_status === 'stop') {
+                        start_task_btn.text('开始执行任务');
+                        start_task_btn.data('status', task_status);
+                    } else {
+                        start_task_btn.text('执行中，点击停止');
+                        start_task_btn.data('status', task_status);
+                    }
+                }
+            })
+        });
+        myCalledDataTable = new DataTable('#calledContractTable', {
+            "processing": true,
+            "serverSide": true,
+            "order": [[5, "desc"]],
+            ajax: {
+                'url': '/data/get_speech_audio_record',
+                type: 'get',
+                "data": function (d) {
+                    // 将日期范围参数添加到请求中
+                    d.start_date = date_range['calledDatetime'][0];
+                    d.end_date = date_range['calledDatetime'][1] + ' 23:59:59';
+                    d.intention_level = $("#intention_level").val();
+                    d.phone_num = $('#phone_num_table1').val();
+                    d.talk_count = $('#talk_count').val();
+                    d.task_code = task_code
+                    // d.sort_field = 'duration'
+                }
+            },
+            "pagingType": "full_numbers",  // 设置分页显示方式
+            "pageLength": 10,  // 每页显示的记录数
+            "lengthMenu": [5, 10, 25, 50, 100],
+            "language": {
+                "sProcessing": "处理中...",
+                "sLengthMenu": "显示 _MENU_ 项结果",
+                "sZeroRecords": "没有匹配结果",
+                "sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+                "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+                "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+                "sInfoPostFix": "",
+                "sUrl": "",
+                "sEmptyTable": "表中数据为空",
+                "sLoadingRecords": "载入中...",
+                "sInfoThousands": ",",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "上页",
+                    "sNext": "下页",
+                    "sLast": "末页"
+                },
+                "lengthMenu": "Show _MENU_ ",
+                "oAria": {
+                    "sSortAscending": ": 以升序排列此列",
+                    "sSortDescending": ": 以降序排列此列"
+                }
+            },
+            columns: [{data: 'id', title: 'id'},
+                {
+                    data: 'phone_num', title: '手机号', "render": function (data, type, row) {
+                        let phone_str = '';
+                        // 检查 is_checked 的值
+                        if (row.is_checked === 1) {
+                            // 如果 is_checked == 1, 返回带灰色样式的 HTML
+                            phone_str = '<span style="color: gray;">' + data + '</span>';
+                        } else {
+                            // 否则正常显示
+                            phone_str = data;
+                        }
+                        return `<a href="javascript:void(0)" class="phone-link" data-file-path="${row.audio_file_name}"` +
+                            ` data-txt="${row.audio_txt}" data-record-id="${row.id}" data-door="${row.house_area}#${row.house_num}"
+                             data-time="${row.call_datetime}"
+                            data-details="${data}"><span>` + phone_str + '</span></a>';
+
+                    }
+                },
+                {
+                    data: 'audio_txt', title: '录音文字', "render": function (data, type, row) {
+                        return data.slice(-50).replace(/###/g, '<br>###'); // 截取最后部分字符
+                    }
+                },
+                {
+                    data: 'house_area', title: '小区', render: function (data, type, row) {
+                        return data + row.house_num
+                    }
+                },
+                {data: 'call_datetime', title: '呼叫时间'},
+                {data: 'talk_times', title: '对话次数'},
+                {
+                    data: 'intention_level', title: '意向等级', render: function (data, type, row) {
+                        if (data === -1)
+                            return '未接';
+                        else if (data === 1)
+                            return '明确有意';
+                        else if (data === 2)
+                            return '可能有';
+                        else if (data === 3)
+                            return '没有';
+                        else if (data === 4)
+                            return '已租';
+                        else if (data === 5)
+                            return '需要再次确认';
+                        else
+                            return '未知';
+
+                    }
+                },
+                {data: 'duration', title: '持续时间(秒)'}
+            ]
+        });
+        $('#calledSearchBtn').off('click').on('click', function (e) {
+            myCalledDataTable.ajax.reload(null, true);
+        })
+        $('#searchPhoneBtn').off('click').on('click', function (e) {
+            wait_speech_phone_num_table.ajax.reload(null, true);
+        })
+        $('#delPhoneBtn').off('click').on('click', function (e) {
+            // 获取选中复选框的值
+            let selectedIds = [];
+            $('input.row-checkbox:checked').each(function () {
+                selectedIds.push($(this).val());
+            });
+
+            if (selectedIds.length > 0) {
+                // 确认删除
+                if (confirm('确定删除选中的数据吗？')) {
+                    // 发送删除请求到后端
+                    $.ajax({
+                        url: '/data/delete_speech_phone_num',  // 替换为你的删除 API URL
+                        type: 'POST',
+                        data: JSON.stringify({ids: selectedIds}),
+                        contentType: 'application/json',
+                        success: function (response) {
+                            alert(`删除成功, ${response.count}条`);
+                            // 刷新表格
+                            wait_speech_phone_num_table.ajax.reload(null, true);
+                        },
+                        error: function (xhr, status, error) {
+                            alert('删除失败：' + error);
+                        }
+                    });
+                }
+            } else {
+                alert('请先选择要删除的项');
+            }
+
+        });
+        // 处理点击事件
+        $('#calledContractTable').off('click').on('click', '.phone-link', function (e) {
+            e.preventDefault();
+            // 获取数据
+            currentIndex = myCalledDataTable.row($(this).closest('tr')).index();
+            let details = $(this).data('details');
+            let call_datetime = $(this).data('time');
+            let currentRowData = myCalledDataTable.row(currentIndex).data()
+            let house_num = currentRowData['house_area'].slice(-2) +'#'+ currentRowData['house_num'];
+            let audio_file_path = location.origin + $(this).data('file-path');
+            let audio_file_path_single = location.origin + $(this).data('file-path').replace(".wav", "_single.wav");
+            let audio_txt = $(this).data('txt').replace(/###/g, '<br>###');
+
+
+            let audio_modal_content = `
+                        完整的：
+                        <br>
+                        <audio controls>
+                            <source src="${audio_file_path}" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <br>
+                        -----
+                        单独房东录音：
+                        <br>
+
+                        <audio controls>
+                            <source src="${audio_file_path_single}" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <input type="hidden" id="currentIndex" value="${currentIndex}">
+            `;
+
+            // 将详细信息填入 Modal
+            $('#modal-phone-details').html(`<label>${call_datetime}</label><br><input id="phone_num" readonly value="${details}"/> <a  class="nowrap" href="javascript:void(0)" onclick="copyTxt('phone_num')">复制</a>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="tel:${details}">拨打</a>
+                                <br><br>门牌号：<textarea readonly id="house_num">${house_num}</textarea><a  class="nowrap" href="javascript:void(0)"  onclick="copyTxt('house_num')">复制</a>
+                                            <br><br>${audio_modal_content}<br>
+                                            <span class="auto-newline">${audio_txt}</span>`);
+            // 更新手机号状态
+            let nextRowData = myCalledDataTable.row(currentIndex).data();
+            if (nextRowData['is_checked'] !== 1)
+                update_phone_num_status(currentIndex, undefined, 1,undefined);
+            $(this).css('color', 'gray');
+            // 显示 Modal
+            $('#audioDetailsModal').modal('show');
+            init_component(currentRowData['intention_level'])
+        });
+
+
+        wait_speech_phone_num_table = new DataTable('#contractTable', {
+            "processing": true,
+            "serverSide": true,
+            //scrollX: true,
+            deferRender: true,
+            ajax: {
+                'url': '/data/get_speech_phone_num',
+                type: 'get',
+                "data": function (d) {
+                    // 将日期范围参数添加到请求中
+                    d.task_code = task_code;
+                    d.phone_num = $('#phone_num_table2').val();
+                    d.phone_status = $('#phone_status').val();
+                    d.start_date = date_range['waitCallDatetime'][0];
+                    d.end_date = date_range['waitCallDatetime'][1] + ' 23:59:59';
+                }
+            },
+            "pagingType": "full_numbers",  // 设置分页显示方式
+            "pageLength": 10,  // 每页显示的记录数
+            "lengthMenu": [5, 10, 25, 50, 100],
+            "language": {
+                "sProcessing": "处理中...",
+                "sLengthMenu": "显示 _MENU_ 项结果",
+                "sZeroRecords": "没有匹配结果",
+                "sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+                "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+                "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+                "sInfoPostFix": "",
+                "sUrl": "",
+                "sEmptyTable": "表中数据为空",
+                "sLoadingRecords": "载入中...",
+                "sInfoThousands": ",",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "上页",
+                    "sNext": "下页",
+                    "sLast": "末页"
+                },
+                "lengthMenu": "Show _MENU_ ",
+                "oAria": {
+                    "sSortAscending": ": 以升序排列此列",
+                    "sSortDescending": ": 以降序排列此列"
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    title: '<input type="checkbox" id="select-all" />',  // 表头添加全选复选框
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return '<input type="checkbox" class="row-checkbox" value="' + row.id + '">';
+                    }
+                },
+                {data: 'id', title: 'id'},
+                {data: 'house_area', title: '小区11'},
+                {data: 'house_num', title: '门牌号'},
+                {
+                    data: 'phone_num',
+                    title: '手机号'
+                }, {data: 'phone_num2', title: '号码2'}, {
+                    data: 'phone_status',
+                    title: '状态'
+                }, {data: 'insert_datetime', title: '插入时间'}]
+        });
+
+        // 全选/取消全选功能
+        $('#select-all').off('click').on('click', function () {
+            let rows = wait_speech_phone_num_table.rows({'search': 'applied'}).nodes();
+            $('input[type="checkbox"]', rows).prop('checked', this.checked);
+        });
+
+        $('#pre_row').off('click').on('click', function () {
+            pre_next_audio_detail('pre')
+        });
+        $('#next_row').off('click').on('click', function () {
+            console.log('click next')
+            pre_next_audio_detail('next')
+        });
+
+
+        $('#uploadBtn').off('click').on('click', function () {
+            var fileInput = $('#fileUpload')[0].files[0];
+
+            if (!fileInput) {
+                alert("Please select a file.");
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('file', fileInput);
+            formData.append('task_code', $('#task_code').val());
+
+            $.ajax({
+                url: '/data/save_speech_phone_num', // 后台处理文件上传的URL
+                type: 'POST',
+                data: formData,
+                processData: false, // 不处理数据
+                contentType: false, // 不设置内容类型
+                success: function (response) {
+                    $('#fileUpload').val();
+                    wait_speech_phone_num_table.ajax.reload(null, true);
+                },
+                error: function (xhr, status, error) {
+                    alert('Failed to upload file: ' + error);
+                }
+            });
+        });
+        $('#recyclePhoneBtn').off('click').on('click', function () {
+            $.post('/data/update_speech_phone_num', {
+                task_code: $('#task_code').val(),
+                phone_status: $('#phone_status').val(),
+                start_date: date_range['calledDatetime'][0],
+                end_date: date_range['calledDatetime'][1] + ' 23:59:59'
+            }, function (data) {
+                if (data.code === 1) {
+                    alert('已经回收' + data.count + '条')
+                    wait_speech_phone_num_table.ajax.reload(null, true);
+                }
+            })
+        })
+
+    }
+
+    $(function () {
+        query_task()
+        $('#houseStatusGroup label').off('click').click(function (e) {
+            update_phone_num_status($('#currentIndex').val(), undefined, undefined,$(e.target).children('input').val())
+        })
+    });
+
+    function initPage() {
+        slide_value = $(".slider").val() == "" ? 50 : parseInt($(".slider").val());
+        $(".slider").slider({
+            id: "blue",
+            max: 100,
+            value: slide_value
+        });
+
+        $('.status').bootstrapSwitch();
+        $(".status").on("switchChange.bootstrapSwitch", function (event, state) {
+            switchStatus($(this).data("id"), state, this);
+        });
+    }
+
+    function switchStatus(id, status, switchBox) {
+        restTemplate("PUT", "/notifies/" + id + "/status/" + status, null, function () {
+            $($(switchBox)).bootstrapSwitch("state", status);
+        });
+    }
+
+</script>
+{% endblock %}

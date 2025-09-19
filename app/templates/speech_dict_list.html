@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+
+{% block title %}通知方式查询{% endblock %}
+{% block navbar %}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="box box-primary">
+    <!--<div class="box-header with-border">
+        {% include 'message.html' %}
+    </div>-->
+
+
+    <div class="box-body">
+
+        <div class="tabbable tabs-left" id="task_table_div"> <!-- Only required for left/right tabs -->
+            <div class="tab-content">
+                <div class="tab-pane active" id="tab1">
+
+                    <div>
+                        <div style="display: inline-flex">
+                            <div style="display: inline;">
+                                <label for="calledDatetime">数据日期:</label>
+                                <div id="calledDatetime"
+                                     style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+                                    <i class="fa fa-calendar"></i>&nbsp;
+                                    <span></span> <i class="fa fa-caret-down"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: inline-block;">
+                            <label for="phone_num_table1">号码:</label>
+                            <div class="input-group">
+                                <input type="text" id="phone_num_table1" class="form-control" placeholder="手机号">
+                            </div>
+                        </div>
+
+                        &nbsp;&nbsp;
+                        <div class="col-4" style="display: inline-grid">
+                            <label for="calledSearchBtn">&nbsp;</label>
+                            <button id="calledSearchBtn" type="button" class="btn btn-success mb-2">查询
+                            </button>
+                        </div>
+
+                        &nbsp;&nbsp;
+
+                        <div class="col-4" style="display: inline-grid;margin-left: 50px;">
+                            <label for="addTaskBtn">&nbsp;</label>
+                            <button id="addTaskBtn" type="button" class="btn btn-primary mb-2"
+                                    style="margin-bottom: 10px;">
+                                <i class="fa fa-plus"></i> 增加任务
+                            </button>
+                        </div>
+                        &nbsp;&nbsp;
+                        <div class="col-4" style="display: inline-grid;margin-left: 20px;">
+                            <label for="delTaskBtn">&nbsp;</label>
+                            <button id="delTaskBtn" type="button" class="btn btn-danger btn-sm delete-row-btn">
+                                <i class="fa fa-trash"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="callTaskListTable" class="table table-bordered">
+
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="dataEntryModal" tabindex="-1" role="dialog" aria-labelledby="dataEntryModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="dataEntryModalLabel">添加/编辑任务</h4>
+            </div>
+            <div class="modal-body">
+                <form id="dataEntryForm">
+                    <input type="hidden" id="recordId" name="id">
+                    <div class="form-group">
+                        <label for="taskCodeInput">任务代码</label>
+                        <input type="text" class="form-control" id="taskCodeInput" name="task_code"
+                               placeholder="输入任务代码" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="areaNameInput">小区名</label>
+                        <input type="text" class="form-control" id="areaNameInput" name="area_name"
+                               placeholder="输入小区名" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskStatusSelect">任务状态</label>
+                        <select class="form-control" id="taskStatusSelect" name="task_status">
+                            <option value="stop">暂停</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="defaultChooseSelect">默认选择</label>
+                        <select class="form-control" id="defaultChooseSelect" name="default_choose">
+                            <option value="ok">ok</option>
+                            <option value="no">no</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveDataBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="application/javascript">
+
+    let currentIndex = 0
+    let myTaskDataTable;
+    let wait_speech_phone_num_table;
+    let date_range = {};
+
+    function init_datepicker(elementName, start_days_ago) {
+        moment.locale('zh-cn');
+        var start = moment().subtract(start_days_ago, 'days');
+        var end = moment();
+        date_range[elementName] = [start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD')];
+
+        function cb(start, end) {
+            $(`#${elementName} span`).html(start.format('YYYY-MM-DD') + ' 至 ' + end.format('YYYY-MM-DD'));
+            // 更新全局变量
+            date_range[elementName][0] = start.format('YYYY-MM-DD');
+            date_range[elementName][1] = end.format('YYYY-MM-DD');
+        }
+
+        $(`#${elementName}`).daterangepicker({
+            startDate: start,
+            endDate: end,
+            locale: {
+                format: 'YYYY-MM-DD',  // 日期格式
+                separator: ' 至 ',
+                applyLabel: '确定',
+                cancelLabel: '取消',
+                fromLabel: '从',
+                toLabel: '到',
+                customRangeLabel: '自定义',
+                daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],  // 星期显示
+                monthNames: ['01月', '02月', '03月', '04月', '05月', '06月', '07月', '08月', '09月', '10月', '11月', '12月'],  // 月份显示为数字
+                firstDay: 1  // 一周从星期一开始
+            },
+            ranges: {
+                '今天': [moment(), moment()],
+                '昨天到今天': [moment().subtract(1, 'days'), moment()],
+                '3天内': [moment().subtract(2, 'days'), moment()],
+                '7天内': [moment().subtract(6, 'days'), moment()],
+                '30天内': [moment().subtract(29, 'days'), moment()],
+                '这个月': [moment().startOf('month'), moment().endOf('month')],
+                '上个月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end);
+    }
+
+    function query_task() {
+        loadDataTable()
+    }
+
+    function update_phone_num_status(currentIndex, audio_txt, is_checked, intention_level) {
+        console.log('currentIndex:', currentIndex, 'update_phone_num_status:', intention_level)
+        let rowData = myTaskDataTable.row(currentIndex).data()
+        let record_id = rowData['id']
+        $.post('/data/update_speech_audio_record', {
+            record_id: record_id,
+            audio_txt: audio_txt,
+            is_checked: is_checked,
+            intention_level: intention_level
+        }, function (data) {
+            if (data['code'] === 1) {
+                if (rowData) {
+                    if (intention_level !== undefined)
+                        rowData['intention_level'] = intention_level;
+                    if (is_checked !== undefined)
+                        rowData['is_checked'] = is_checked;
+                    myTaskDataTable.row(currentIndex).data(rowData).invalidate().draw(false);
+                }
+            }
+        })
+    }
+
+    function initPage() {
+
+    }
+
+    function loadDataTable() {
+        init_datepicker('waitCallDatetime', 300);
+        init_datepicker('calledDatetime', 1);
+        $('#start_task_btn').off('click').click(function (e) {
+            let task_code = $('#task_code').val();
+            let start_task_btn = $(e.target);
+            let task_status = 'stop';
+            if (start_task_btn.data('status') === 'stop') {
+                task_status = 'processing'
+            }
+
+        });
+        myTaskDataTable = new DataTable('#callTaskListTable', {
+            "processing": true,
+            "serverSide": true,
+            "order": [[7, "desc"]],
+            ajax: {
+                'url': '/data/get_call_task',
+                type: 'get',
+                "data": function (d) {
+                    // 将日期范围参数添加到请求中
+
+                    // d.sort_field = 'duration'
+                }
+            },
+            "pagingType": "full_numbers",  // 设置分页显示方式
+            "pageLength": 10,  // 每页显示的记录数
+            "lengthMenu": [5, 10, 25, 50, 100],
+            "language": {
+                "sProcessing": "处理中...",
+                "sLengthMenu": "显示 _MENU_ 项结果",
+                "sZeroRecords": "没有匹配结果",
+                "sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+                "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+                "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+                "sInfoPostFix": "",
+                "sUrl": "",
+                "sEmptyTable": "表中数据为空",
+                "sLoadingRecords": "载入中...",
+                "sInfoThousands": ",",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "上页",
+                    "sNext": "下页",
+                    "sLast": "末页"
+                },
+                "lengthMenu": "Show _MENU_ ",
+                "oAria": {
+                    "sSortAscending": ": 以升序排列此列",
+                    "sSortDescending": ": 以降序排列此列"
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    title: '<input type="checkbox" id="select-all" />',  // 表头添加全选复选框
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return '<input type="checkbox" class="row-checkbox" value="' + row.id + '">';
+                    }
+                },
+                {data: 'id', title: 'id'},
+                {
+                    data: 'task_code', title: '任务代码'
+                },
+                {
+                    data: 'area_name', title: '小区名', "render": function (data, type, row) {
+                        return data.slice(-50).replace(/###/g, '<br>###'); // 截取最后部分字符
+                    }
+                },
+                {data: 'insert_datetime', title: '创建时间'},
+                {
+                    data: 'task_status', title: '任务状态', render: function (data, type, row) {
+                        if (data === 'stop')
+                            return '暂停';
+                        else if (data === 'processing')
+                            return '执行中'
+                        else
+                            return '未知';
+
+                    }
+                }, {
+                    data: null, // This column doesn't directly map to a data field
+                    title: '操作', // Column header
+                    orderable: false, // Make this column unsortable
+                    searchable: false, // Make this column unsearchable
+                    render: function (data, type, row) {
+                        // 'row' contains the full data object for the current row
+                        return `
+                    <button class="btn btn-info btn-sm edit-btn" data-id="${row.id}" title="编辑">
+                        <i class="fa fa-pencil"></i> 编辑
+                    </button>
+                    `;
+                    }
+                }
+            ]
+        });
+        $('#calledSearchBtn').off('click').on('click', function (e) {
+            myTaskDataTable.ajax.reload(null, true);
+        });
+        $('#searchPhoneBtn').off('click').on('click', function (e) {
+            wait_speech_phone_num_table.ajax.reload(null, true);
+        });
+    }
+
+    $(function () {
+        query_task();
+        // --- Add Functionality ---
+        $('#addTaskBtn').on('click', function () {
+            // Clear form for adding new data
+            $('#dataEntryForm')[0].reset();
+            $('#recordId').val(''); // Clear hidden ID
+            $('#dataEntryModalLabel').text('添加新任务');
+            $('#dataEntryModal').modal('show');
+        });
+        // --- Edit Functionality ---
+        $('#callTaskListTable').on('click', '.edit-btn', function () {
+            const recordId = $(this).data('id');
+            const rowData = myTaskDataTable.row($(this).parents('tr')).data();
+
+            console.log("Edit button clicked for ID:", recordId);
+            console.log("Row Data:", rowData);
+
+            // 1. Populate your modal form with rowData
+            $('#recordId').val(rowData.id);
+            $('#taskCodeInput').val(rowData.task_code);
+            $('#areaNameInput').val(rowData.area_name);
+
+            // 设置任务状态下拉框的值
+            // 确保 rowData.task_status 的值与 <option> 的 value 属性匹配
+            $('#taskStatusSelect').val(rowData.task_status);
+
+            // ... populate other fields in your modal form based on rowData
+
+            // 2. Set the modal title to "编辑任务"
+            $('#dataEntryModalLabel').text('编辑任务');
+
+            // 3. Show your modal
+            $('#dataEntryModal').modal('show');
+        });
+
+        // --- Save (Add/Edit) Logic ---
+        $('#saveDataBtn').on('click', function () {
+            const formData = $('#dataEntryForm').serializeArray().reduce(function (obj, item) {
+                obj[item.name] = item.value;
+                return obj;
+            }, {});
+
+            let url = '/data/add_call_task'; // Default for adding
+            let method = 'POST';
+            if (formData.id) { // If ID exists, it's an edit operation
+                url = '/data/update_call_task';
+            }
+
+            $.ajax({
+                url: url,
+                type: method,
+                //contentType: 'application/json', // If sending JSON
+                data: formData, // If sending JSON
+                success: function (response) {
+                    if (response.code === 1) {
+                        alert('操作成功！');
+                        $('#dataEntryModal').modal('hide');
+                        myTaskDataTable.ajax.reload(null, true); // Reload table to show changes
+                    } else {
+                        alert('操作失败: ' + response.msg);
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    alert('请求失败: ' + error);
+                }
+            });
+        });
+
+        // --- Delete Functionality (your existing code, slightly generalized) ---
+        $('#delTaskBtn').off('click').on('click', function (e) {
+            let selectedIds = [];
+            // Assuming checkboxes are within the table you want to delete from, e.g., #contractTable
+            $('#callTaskListTable input.row-checkbox:checked').each(function () {
+                selectedIds.push($(this).val());
+            });
+            if (selectedIds.length > 0) {
+                if (confirm('确定删除选中的数据吗？')) {
+                    $.ajax({
+                        url: '/data/delete_call_task/'+selectedIds[0], // Or a more general delete endpoint
+                        type: 'POST', // Or 'DELETE' if backend supports RESTful DELETE
+
+                        // contentType: 'application/json',
+                        success: function (response) {
+                            if (response.code === 1) {
+                                alert(`删除成功, ${response.count}条`);
+                                myTaskDataTable.ajax.reload(null, true); // Reload relevant table
+                            } else {
+                                alert('删除失败: ' + response.message);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            alert('删除失败：' + error);
+                        }
+                    });
+                }
+            } else {
+                alert('请先选择要删除的项');
+            }
+        });
+
+    });
+
+</script>
+{% endblock %}

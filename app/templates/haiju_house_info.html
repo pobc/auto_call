@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>房屋详情 - {{ community_title }}</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <div class="card shadow mb-4">
+        <div class="card-body">
+
+            <div class="col-md-8">
+                <input type="text" name="house_code" id="house-code-input" class="form-control"
+                       placeholder="请输入房子 ID" required>
+            </div>
+            <div class="col-md-2">
+                <button type="button" id="query-btn" class="btn btn-primary w-100">查询</button>
+            </div>
+            <div class="col-md-2">
+                <button type="button" id="clear-btn" class="btn btn-danger w-100">清除</button>
+            </div>
+
+        </div>
+    </div>
+    {% if community_title %}
+    <div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h2 class="mb-0">{{ community_title }} - {{house_code}}</h2>
+    </div>
+    <div class="card-body">
+        <!-- 时间与基本信息合并横排显示 -->
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">默认租期</dt>
+                    <dd class="col-sm-6">{{ min_lease_title }}</dd>
+                    {% if warrant_end_time != '0' %}
+                    <dt class="col-sm-6">授权到期</dt>
+                    <dd class="col-sm-6">{{ warrant_end_time }}</dd>
+                    {% endif %}
+                    <dt class="col-sm-6">房子到期</dt>
+                    <dd class="col-sm-6">{{ rent_time_end }}</dd>
+                    <dt class="col-sm-6">授权状态</dt>
+                    <dd class="col-sm-6">{{ warrant_status }}</dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">租金</dt>
+                    <dd class="col-sm-6">{{ rent_amount }} 万元/月</dd>
+                    <dt class="col-sm-6">面积</dt>
+                    <dd class="col-sm-6">{{ real_build_area }}</dd>
+                </dl>
+            </div>
+        </div>
+        <!-- 剩余基本信息横排显示 -->
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">户型</dt>
+                    <dd class="col-sm-6">{{ real_house_type_title }}</dd>
+                    <dt class="col-sm-6">锁类型</dt>
+                    <dd class="col-sm-6">{{ locker_type_title }}</dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">钥匙状态</dt>
+                    <dd class="col-sm-6">{{ has_key }}</dd>
+                    <dt class="col-sm-6">租金包含</dt>
+                    <dd class="col-sm-6">{{ rent_container }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+    {% else %}
+    <p>未找到相关房屋信息，请检查输入的房屋 ID。</p>
+    {% endif %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script type="text/javascript">
+    document.getElementById('query-btn').addEventListener('click', function () {
+        // 获取输入框中的值
+        const inputValue = document.getElementById('house-code-input').value;
+        // 对输入值进行编码处理，避免特殊字符问题
+        const encodedValue = encodeURIComponent(inputValue);
+        // 构建完整的 URL
+        // 跳转到新的 URL
+        window.location.href = `/house/${encodedValue}`;
+    });
+
+    document.getElementById('clear-btn').addEventListener('click', function () {
+        // 清空输入框
+        document.getElementById('house-code-input').value = '';
+    });
+</script>
+</body>
+</html>
